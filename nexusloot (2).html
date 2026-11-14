@@ -1,0 +1,2681 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexusLoot — Кибермаркет игровых товаров и токенов</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Outfit (Gaming Headings), Inter (UI), JetBrains Mono (Numbers/IDs) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', ' system-ui', 'sans-serif'],
+            display: ['Outfit', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          colors: {
+            obsidian: '#060813',
+            surface: '#0d1224',
+            surfaceLight: '#141c36',
+            neonViolet: '#8b5cf6',
+            neonCyan: '#06b6d4',
+            neonGold: '#f59e0b',
+            neonEmerald: '#10b981'
+          },
+          boxShadow: {
+            neon: '0 0 28px -4px rgba(139, 92, 246, 0.55)',
+            cyanGlow: '0 0 28px -4px rgba(6, 182, 212, 0.45)',
+            goldGlow: '0 0 30px -5px rgba(245, 158, 11, 0.45)',
+            emeraldGlow: '0 0 25px -5px rgba(16, 185, 129, 0.45)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      background-color: #060813;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+    /* Cyber Grid & Ambient Aura Background */
+    .cyber-bg {
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(139, 92, 246, 0.16) 0%, transparent 40%),
+        radial-gradient(circle at 85% 10%, rgba(6, 182, 212, 0.14) 0%, transparent 38%),
+        radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.10) 0%, transparent 45%),
+        linear-gradient(to right, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 38px 38px, 38px 38px;
+    }
+
+    /* Glassmorphism surfaces */
+    .glass-panel {
+      background: linear-gradient(145deg, rgba(19, 27, 51, 0.82), rgba(10, 14, 28, 0.92));
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .glass-header {
+      background: rgba(6, 8, 19, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* Card hover & holographic shine */
+    .lot-card {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+    }
+    .lot-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 65%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.06),
+        transparent
+      );
+      transform: skewX(-24deg);
+      transition: left 0.65s ease;
+      pointer-events: none;
+    }
+    .lot-card:hover::before {
+      left: 140%;
+    }
+    .lot-card:hover {
+      transform: translateY(-6px);
+    }
+
+    /* Animated pulse */
+    @keyframes pulseSoft {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.55; transform: scale(0.92); }
+    }
+    .animate-pulse-soft {
+      animation: pulseSoft 2s infinite ease-in-out;
+    }
+
+    /* Floating icon animation */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-float {
+      animation: floatSlow 3.6s ease-in-out infinite;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #060813;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="cyber-bg min-h-screen font-sans text-slate-100 antialiased selection:bg-violet-500 selection:text-white">
+
+  <!-- Toast Notifications Container -->
+  <div id="toastContainer" class="fixed bottom-5 left-5 z-[90] flex max-w-sm flex-col gap-2.5 pointer-events-none"></div>
+
+  <!-- Top Announcement Ribbon -->
+  <div class="border-b border-violet-500/20 bg-gradient-to-r from-violet-950/70 via-indigo-950/70 to-emerald-950/70 px-4 py-1.5 text-center text-[11px] font-medium text-slate-300">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-4 gap-y-1">
+      <span class="inline-flex items-center gap-1.5 font-semibold text-amber-300">
+        <span>👑 Правило сервера:</span>
+        <span class="text-slate-200">Первый зарегистрированный игрок навсегда становится единственным Администратором</span>
+      </span>
+      <span class="hidden text-slate-600 sm:inline">•</span>
+      <span class="inline-flex items-center gap-1 text-emerald-300">
+        <span>⚡ Спец-лот Google Pay:</span>
+        <strong class="font-mono text-white">$10 = 1,000 🪙</strong>
+      </span>
+    </div>
+  </div>
+
+  <!-- Sticky Glass Navigation Header -->
+  <header class="glass-header sticky top-0 z-40 border-b border-slate-800/80">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 via-indigo-600 to-cyan-500 shadow-neon">
+          <span class="text-2xl">⚡</span>
+          <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-obsidian bg-emerald-400"></span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display text-xl font-black tracking-tight text-white">
+              NEXUS<span class="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">LOOT</span>
+            </span>
+            <span class="rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-violet-300">
+              PRO v3.5
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400">Игровой маркетплейс • Токены & Google Pay</p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Online Radar, GitHub Cloud, Publish Lot, Wallet & Profile -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+        <!-- Live Online Players Button -->
+        <button
+          id="onlineBadgeBtn"
+          type="button"
+          class="group flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:border-emerald-400/60 hover:bg-emerald-500/20"
+          title="Посмотреть кто сейчас на сервере"
+        >
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+          </span>
+          <span class="hidden sm:inline">Онлайн:</span>
+          <span id="onlineCountHeader" class="font-mono font-extrabold text-white">0</span>
+        </button>
+
+        <!-- GitHub Cloud Sync Button -->
+        <button
+          id="openGithubModalBtn"
+          type="button"
+          class="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-surface/90 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-violet-500/50 hover:bg-surfaceLight"
+          title="Настройка облачной БД GitHub Gist"
+        >
+          <span>🐙</span>
+          <span class="hidden md:inline">GitHub</span>
+          <span id="ghStatusDot" class="h-2 w-2 rounded-full bg-amber-400"></span>
+          <span id="ghStatusText" class="font-mono text-[11px] text-slate-400">Local</span>
+        </button>
+
+        <!-- Create / Publish New Lot Button -->
+        <button
+          id="openPublishModalBtn"
+          type="button"
+          class="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-neon transition hover:brightness-110 active:scale-95"
+        >
+          <span class="text-sm">➕</span>
+          <span>Разместить лот</span>
+        </button>
+
+        <!-- Token Balance Chip -->
+        <div class="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 to-orange-500/10 px-3 py-1.5">
+          <span class="text-base">🪙</span>
+          <div class="leading-tight">
+            <div class="text-[9px] font-bold uppercase tracking-wider text-amber-300/80">Баланс</div>
+            <div id="userTokensDisplay" class="font-mono text-xs font-extrabold text-amber-300">0</div>
+          </div>
+        </div>
+
+        <!-- User Profile & Auth Trigger -->
+        <div class="flex items-center gap-1.5 rounded-xl border border-slate-800 bg-surface/90 p-1 pl-2.5">
+          <span id="userRoleBadge" class="rounded-md bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold uppercase text-slate-300">
+            ГОСТЬ
+          </span>
+          <span id="userNameDisplay" class="max-w-[120px] truncate text-xs font-bold text-white sm:max-w-[150px]">
+            Не авторизован
+          </span>
+          <button
+            id="openRegModalBtn"
+            type="button"
+            class="rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-violet-300 transition hover:bg-violet-600 hover:text-white"
+          >
+            <span id="regBtnLabel">Вход / Регистрация</span>
+          </button>
+          <button
+            id="logoutBtn"
+            type="button"
+            class="hidden rounded-lg bg-rose-500/15 px-2 py-1.5 text-xs font-bold text-rose-300 transition hover:bg-rose-500/30"
+            title="Выйти из аккаунта"
+          >
+            🚪
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
+
+    <!-- HERO SECTION + FEATURED GOOGLE PAY $10 = 1000 TOKENS CARD -->
+    <section class="relative overflow-hidden rounded-3xl border border-slate-800/90 glass-panel p-6 sm:p-8 lg:p-10">
+      <!-- Decorative Background Glows -->
+      <div class="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-violet-600/20 blur-3xl"></div>
+      <div class="pointer-events-none absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl"></div>
+
+      <div class="relative grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
+        <!-- Left Column: Storefront Pitch & Live Server Telemetry -->
+        <div class="space-y-6 lg:col-span-7">
+          <div class="inline-flex flex-wrap items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3.5 py-1.5 text-xs font-semibold text-violet-300">
+            <span class="h-2 w-2 rounded-full bg-violet-400 animate-ping"></span>
+            <span>Мгновенная выдача токенов • Защита паролем • GitHub Cloud Sync</span>
+          </div>
+
+          <h1 class="font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+            Премиум маркетплейс <br class="hidden sm:inline" />
+            <span class="bg-gradient-to-r from-violet-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">
+              игровых лотов и токенов
+            </span>
+          </h1>
+
+          <p class="max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            Покупайте редкие внутриигровые предметы за токены, пополняйте баланс через <strong>Google Pay ($10 за 1000 🪙)</strong> или пишите напрямую Администратору в живой чат. Первый зарегистрированный на сервере игрок получает права <strong>👑 Единственного Админа</strong>.
+          </p>
+
+          <!-- Action Buttons Row -->
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              id="heroBuy1000Btn"
+              type="button"
+              class="flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 px-5 py-3.5 text-xs sm:text-sm font-extrabold text-slate-950 shadow-emeraldGlow transition hover:brightness-110 active:scale-95"
+            >
+              <span class="text-lg">🪙</span>
+              <span>Купить 1,000 токенов за $10 (G Pay)</span>
+            </button>
+
+            <button
+              id="heroWriteAdminBtn"
+              type="button"
+              class="flex items-center gap-2 rounded-2xl border border-slate-700 bg-obsidian/80 px-5 py-3.5 text-xs sm:text-sm font-bold text-white transition hover:border-violet-500/60 hover:bg-surfaceLight"
+            >
+              <span>💬</span>
+              <span>Написать Админу по покупке</span>
+            </button>
+          </div>
+
+          <!-- 4 Live Telemetry Stat Cards -->
+          <div class="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
+            <div class="rounded-2xl border border-slate-800/90 bg-obsidian/70 p-3.5">
+              <div class="text-[11px] font-medium text-slate-400">Игроков в сети</div>
+              <div class="mt-1 flex items-baseline gap-1.5">
+                <span id="statOnlineUsers" class="font-mono text-xl font-extrabold text-emerald-400">0</span>
+                <span class="text-[11px] text-emerald-400/80">online</span>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800/90 bg-obsidian/70 p-3.5">
+              <div class="text-[11px] font-medium text-slate-400">Всего аккаунтов</div>
+              <div class="mt-1 flex items-baseline gap-1.5">
+                <span id="statTotalUsers" class="font-mono text-xl font-extrabold text-white">0</span>
+                <span class="text-[11px] text-slate-400">на сервере</span>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800/90 bg-obsidian/70 p-3.5">
+              <div class="text-[11px] font-medium text-slate-400">Активных лотов</div>
+              <div class="mt-1 flex items-baseline gap-1.5">
+                <span id="statLotsCount" class="font-mono text-xl font-extrabold text-violet-400">0</span>
+                <span class="text-[11px] text-slate-400">в каталоге</span>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-amber-500/25 bg-amber-500/5 p-3.5">
+              <div class="flex items-center justify-between text-[11px] font-medium text-amber-300/90">
+                <span>👑 Админ сервера</span>
+                <span id="adminStatusTag" class="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-300">Свободен</span>
+              </div>
+              <div id="statAdminName" class="mt-1 truncate font-display text-sm font-extrabold text-white">
+                Ожидает 1-го рег.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Holographic Featured Lot ($10 = 1000 Tokens Google Pay) -->
+        <div class="lg:col-span-5">
+          <div class="relative rounded-3xl border-2 border-emerald-500/50 bg-gradient-to-b from-slate-900/95 via-obsidian to-emerald-950/30 p-6 shadow-emeraldGlow">
+            <!-- Top Ribbon -->
+            <div class="mb-4 flex items-center justify-between">
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-emerald-300">
+                <span>🔥 ХИТ ПРОДАЖ</span>
+                <span>•</span>
+                <span>GOOGLE PAY</span>
+              </span>
+              <span class="font-mono text-xs font-bold text-slate-400">ID: #GPAY-1000</span>
+            </div>
+
+            <!-- Main Visual -->
+            <div class="my-4 flex items-center gap-4 rounded-2xl border border-slate-800 bg-surface/80 p-4">
+              <div class="animate-float flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 text-4xl shadow-goldGlow">
+                🪙
+              </div>
+              <div>
+                <div class="text-xs font-bold uppercase tracking-wider text-emerald-400">Официальный пакет</div>
+                <h2 class="font-display text-2xl font-black text-white">1,000 Токенов</h2>
+                <p class="text-xs text-slate-300">Мгновенное пополнение баланса или заказ через Администратора</p>
+              </div>
+            </div>
+
+            <!-- Price Breakdown -->
+            <div class="mb-5 grid grid-cols-2 gap-3 rounded-2xl border border-slate-800/90 bg-obsidian/80 p-3.5">
+              <div>
+                <div class="text-[11px] text-slate-400">Стоимость пакета</div>
+                <div class="font-mono text-2xl font-black text-white">$10.00 <span class="text-xs font-normal text-slate-400">USD</span></div>
+              </div>
+              <div class="border-l border-slate-800 pl-3">
+                <div class="text-[11px] text-slate-400">Начисление</div>
+                <div class="font-mono text-2xl font-black text-amber-400">+1,000 🪙</div>
+              </div>
+            </div>
+
+            <!-- Stylized Google Pay Button -->
+            <button
+              id="featuredGpayCardBtn"
+              type="button"
+              class="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-5 py-3.5 text-sm font-extrabold text-slate-950 shadow-lg transition hover:bg-slate-100 active:scale-[0.99]"
+            >
+              <span class="inline-flex items-center font-sans text-base font-black tracking-tight">
+                <span class="text-blue-600">G</span><span class="text-red-500">o</span><span class="text-amber-500">o</span><span class="text-blue-600">g</span><span class="text-emerald-600">l</span><span class="text-red-500">e</span>
+                <span class="ml-1 font-bold text-slate-800">Pay</span>
+              </span>
+              <span class="h-4 w-px bg-slate-300"></span>
+              <span>Оплатить $10.00 • 1000 🪙</span>
+            </button>
+
+            <p class="mt-3 text-center text-[11px] text-slate-400">
+              После клика можно провести авто-оплату Google Pay или отправить заявку напрямую Админу
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN COMMAND CENTER (Strictly visible ONLY to the 1st registered user) -->
+    <section
+      id="adminPanelSection"
+      class="hidden rounded-3xl border-2 border-amber-500/40 bg-gradient-to-br from-amber-950/25 via-surface to-obsidian p-6 shadow-goldGlow"
+    >
+      <div class="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-amber-500/20 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/20 border border-amber-400/40 text-2xl">
+            👑
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-display text-lg font-black text-white">Панель Главного Администратора</h2>
+              <span class="rounded-full bg-amber-500/20 border border-amber-400/40 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-amber-300">
+                Единственный Админ (#1)
+              </span>
+            </div>
+            <p class="text-xs text-slate-300">
+              Вы зарегистрировались первым. Никто другой не может получить админку. Здесь вы видите всех игроков в сети и выдаёте токены.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="rounded-xl border border-slate-800 bg-obsidian px-3 py-1.5 text-slate-300">
+            Сообщений в чате: <strong id="adminMsgCount" class="font-mono text-amber-300">0</strong>
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <!-- Issue Tokens Generator -->
+        <div class="rounded-2xl border border-slate-800 bg-obsidian/80 p-5 lg:col-span-5">
+          <h3 class="mb-1 font-display text-sm font-bold text-white">🪙 Выдача токенов игроку</h3>
+          <p class="mb-4 text-xs text-slate-400">Выберите игрока на сервере и начислите ему токены после оплаты</p>
+
+          <form id="issueTokensForm" class="space-y-3.5">
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-slate-300">Получатель токенов</label>
+              <select
+                id="targetUserSelect"
+                class="w-full rounded-xl border border-slate-700 bg-surface px-3.5 py-2.5 text-xs font-medium text-white outline-none focus:border-amber-400"
+              ></select>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-slate-300">Количество токенов (🪙)</label>
+              <div class="flex gap-2">
+                <input
+                  id="issueTokensAmount"
+                  type="number"
+                  min="1"
+                  value="1000"
+                  required
+                  class="w-full rounded-xl border border-slate-700 bg-surface px-3.5 py-2.5 font-mono text-sm font-bold text-amber-300 outline-none focus:border-amber-400"
+                />
+              </div>
+              <div class="mt-2 flex flex-wrap gap-1.5">
+                <button type="button" data-preset-tokens="250" class="preset-token-btn rounded-lg border border-slate-700 bg-surface px-2.5 py-1 font-mono text-[11px] font-bold text-slate-300 hover:border-amber-400/50 hover:text-amber-300">+250 🪙</button>
+                <button type="button" data-preset-tokens="1000" class="preset-token-btn rounded-lg border border-amber-500/40 bg-amber-500/15 px-2.5 py-1 font-mono text-[11px] font-bold text-amber-300 hover:bg-amber-500/25">+1000 🪙 ($10)</button>
+                <button type="button" data-preset-tokens="2500" class="preset-token-btn rounded-lg border border-slate-700 bg-surface px-2.5 py-1 font-mono text-[11px] font-bold text-slate-300 hover:border-amber-400/50 hover:text-amber-300">+2500 🪙</button>
+                <button type="button" data-preset-tokens="5000" class="preset-token-btn rounded-lg border border-slate-700 bg-surface px-2.5 py-1 font-mono text-[11px] font-bold text-slate-300 hover:border-amber-400/50 hover:text-amber-300">+5000 🪙</button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3 text-xs font-extrabold uppercase tracking-wider text-slate-950 shadow-goldGlow transition hover:brightness-110"
+            >
+              ⚡ Начислить токены игроку
+            </button>
+          </form>
+        </div>
+
+        <!-- Registered & Online Users Table -->
+        <div class="rounded-2xl border border-slate-800 bg-obsidian/80 p-5 lg:col-span-7">
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <h3 class="font-display text-sm font-bold text-white">👥 Игроки на сервере</h3>
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse-soft"></span>
+                В сети: <span id="adminOnlinePlayersCount" class="font-mono">0</span>
+              </span>
+            </div>
+            <span class="text-[11px] text-slate-400">Авто-обновление пульса каждые 6 сек.</span>
+          </div>
+          <div id="adminUsersList" class="max-h-60 space-y-2 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARKETPLACE FILTER BAR & SEARCH -->
+    <section class="space-y-5">
+      <div class="flex flex-col justify-between gap-4 rounded-2xl border border-slate-800/90 glass-panel p-4 sm:flex-row sm:items-center">
+        <!-- Filter Tabs -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            data-filter="all"
+            class="filter-tab rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-neon transition"
+          >
+            🔥 Все лоты
+          </button>
+          <button
+            type="button"
+            data-filter="gpay"
+            class="filter-tab rounded-xl border border-slate-800 bg-obsidian/80 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:text-white"
+          >
+            💳 Пакеты Google Pay ($10 = 1000 🪙)
+          </button>
+          <button
+            type="button"
+            data-filter="item"
+            class="filter-tab rounded-xl border border-slate-800 bg-obsidian/80 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:text-white"
+          >
+            ⚔️ Игровые предметы за 🪙
+          </button>
+        </div>
+
+        <!-- Search Input + Add Lot Shortcut -->
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1 sm:w-64">
+            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">🔍</span>
+            <input
+              id="searchLotsInput"
+              type="text"
+              placeholder="Поиск лотов или токенов..."
+              class="w-full rounded-xl border border-slate-800 bg-obsidian/90 py-2 pl-9 pr-3 text-xs text-white placeholder-slate-500 outline-none transition focus:border-violet-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- LOTS GRID -->
+      <div id="lotsGrid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
+  </main>
+
+  <!-- FLOATING / DOCKED CHAT WITH ADMIN (Покупка токенов) -->
+  <div class="fixed bottom-5 right-5 z-50">
+    <!-- Chat Launcher Button -->
+    <button
+      id="chatToggleBtn"
+      type="button"
+      class="flex items-center gap-3 rounded-2xl border border-violet-400/40 bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-600 px-4 py-3 text-xs font-extrabold text-white shadow-neon transition hover:scale-105 active:scale-95"
+    >
+      <span class="text-lg">💬</span>
+      <div class="text-left">
+        <div class="leading-none">Чат с Админом</div>
+        <div class="mt-0.5 text-[10px] font-normal text-violet-200">Покупка и выдача токенов</div>
+      </div>
+      <span
+        id="unreadBadge"
+        class="ml-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-400 px-1.5 font-mono text-[11px] font-black text-slate-950"
+      >
+        1
+      </span>
+    </button>
+
+    <!-- Chat Drawer Window -->
+    <div
+      id="chatDrawer"
+      class="hidden fixed bottom-20 right-4 left-4 sm:left-auto sm:w-96 flex-col overflow-hidden rounded-3xl border border-slate-700/80 glass-panel shadow-2xl"
+    >
+      <!-- Chat Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 bg-gradient-to-r from-violet-950/90 to-slate-900 px-4 py-3.5">
+        <div class="flex items-center gap-2.5">
+          <div class="relative flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-400/40 text-lg">
+            👑
+            <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-obsidian bg-emerald-400"></span>
+          </div>
+          <div>
+            <div class="text-xs font-extrabold text-white">Чат покупки токенов</div>
+            <div class="text-[11px] text-emerald-300">Прямая связь с Администратором</div>
+          </div>
+        </div>
+        <button
+          id="closeChatBtn"
+          type="button"
+          class="rounded-lg bg-slate-800/80 px-2.5 py-1 text-xs font-bold text-slate-300 hover:bg-slate-700 hover:text-white"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Quick Action Chips inside Chat -->
+      <div class="flex flex-wrap gap-1.5 border-b border-slate-800/80 bg-obsidian/70 px-3 py-2">
+        <button
+          type="button"
+          data-quick-msg="Привет, Админ! Хочу купить 1000 токенов за $10 через Google Pay."
+          class="quick-chat-btn rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/20"
+        >
+          💳 Купить 1000 🪙 за $10
+        </button>
+        <button
+          type="button"
+          data-quick-msg="Админ, я оплатил пакет токенов! Выдай, пожалуйста, на мой баланс."
+          class="quick-chat-btn rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-300 hover:bg-amber-500/20"
+        >
+          🪙 Запросить выдачу
+        </button>
+      </div>
+
+      <!-- Messages Feed -->
+      <div id="chatMessagesList" class="h-72 space-y-2.5 overflow-y-auto p-3.5 text-xs"></div>
+
+      <!-- Message Input Form -->
+      <form id="chatForm" class="flex items-center gap-2 border-t border-slate-800 bg-obsidian/90 p-3">
+        <input
+          id="chatInput"
+          type="text"
+          placeholder="Написать админу по покупке..."
+          class="flex-1 rounded-xl border border-slate-700 bg-surface px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-violet-500"
+        />
+        <button
+          type="submit"
+          class="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-2 text-xs font-extrabold text-white shadow-neon hover:brightness-110"
+        >
+          ➤
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: REGISTRATION & PASSWORD LOGIN (Strict 1st User = Admin)      -->
+  <!-- ===================================================================== -->
+  <div
+    id="regModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+  >
+    <div class="w-full max-w-md overflow-hidden rounded-3xl border border-slate-700/80 glass-panel shadow-2xl">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🔐</span>
+          <h3 class="font-display text-base font-black text-white">Аккаунт NexusLoot</h3>
+        </div>
+        <button
+          id="closeRegModalBtn"
+          type="button"
+          class="rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-bold text-slate-400 hover:text-white"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <!-- First Admin Rule Banner -->
+        <div
+          id="firstAdminHint"
+          class="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-200"
+        >
+          👑 <strong>Админ-слот свободен!</strong> Самый первый зарегистрированный человек навсегда становится единственным Администратором.
+        </div>
+
+        <!-- Tabs: Register vs Login -->
+        <div class="grid grid-cols-2 gap-2 rounded-2xl bg-obsidian p-1 border border-slate-800">
+          <button
+            id="tabRegisterBtn"
+            type="button"
+            class="rounded-xl bg-violet-600 py-2 text-xs font-extrabold text-white transition"
+          >
+            ✨ Регистрация
+          </button>
+          <button
+            id="tabLoginBtn"
+            type="button"
+            class="rounded-xl py-2 text-xs font-bold text-slate-400 transition hover:text-white"
+          >
+            🔑 Вход по паролю
+          </button>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <form id="registerForm" class="space-y-3.5">
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-300">Игровой никнейм</label>
+            <input
+              id="regNickname"
+              type="text"
+              required
+              placeholder="Например: Shadow Stalker"
+              class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 text-xs text-white outline-none focus:border-violet-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-slate-300">Пароль (мин. 4 симв.)</label>
+              <input
+                id="regPassword"
+                type="password"
+                required
+                placeholder="••••••"
+                class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 text-xs text-white outline-none focus:border-violet-500"
+              />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-slate-300">Повтор пароля</label>
+              <input
+                id="regPasswordConfirm"
+                type="password"
+                required
+                placeholder="••••••"
+                class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 text-xs text-white outline-none focus:border-violet-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-300">Контакт для связи (Telegram / Discord)</label>
+            <input
+              id="regContact"
+              type="text"
+              placeholder="@username или Discord#0001"
+              class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 text-xs text-white outline-none focus:border-violet-500"
+            />
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-slate-300">Выберите аватар</label>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" data-avatar="🦊" class="avatar-opt rounded-xl border border-violet-500 bg-violet-500/20 px-3 py-1.5 text-lg">🦊</button>
+              <button type="button" data-avatar="🐉" class="avatar-opt rounded-xl border border-slate-700 bg-obsidian px-3 py-1.5 text-lg">🐉</button>
+              <button type="button" data-avatar="🤖" class="avatar-opt rounded-xl border border-slate-700 bg-obsidian px-3 py-1.5 text-lg">🤖</button>
+              <button type="button" data-avatar="🥷" class="avatar-opt rounded-xl border border-slate-700 bg-obsidian px-3 py-1.5 text-lg">🥷</button>
+              <button type="button" data-avatar="⚡" class="avatar-opt rounded-xl border border-slate-700 bg-obsidian px-3 py-1.5 text-lg">⚡</button>
+              <button type="button" data-avatar="👑" class="avatar-opt rounded-xl border border-slate-700 bg-obsidian px-3 py-1.5 text-lg">👑</button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3 text-xs font-extrabold uppercase tracking-wider text-white shadow-neon transition hover:brightness-110"
+          >
+            🚀 Зарегистрироваться на сервере
+          </button>
+        </form>
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm" class="hidden space-y-3.5">
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-300">Ваш никнейм</label>
+            <input
+              id="loginNickname"
+              type="text"
+              required
+              placeholder="Введите никнейм..."
+              class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 text-xs text-white outline-none focus:border-violet-500"
+            />
+          </div>
+
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-300">Пароль</label>
+            <input
+              id="loginPassword"
+              type="password"
+              required
+              placeholder="Введите пароль..."
+              class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 text-xs text-white outline-none focus:border-violet-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 text-xs font-extrabold uppercase tracking-wider text-slate-950 shadow-emeraldGlow transition hover:brightness-110"
+          >
+            🔐 Войти в аккаунт
+          </button>
+        </form>
+
+        <!-- Existing Accounts Quick Selector -->
+        <div id="existingProfilesBox" class="hidden border-t border-slate-800 pt-3">
+          <div class="mb-2 text-[11px] font-semibold text-slate-400">Аккаунты на сервере (выберите для входа по паролю):</div>
+          <div id="existingProfilesList" class="max-h-36 space-y-1.5 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: GOOGLE PAY CHECKOUT ($10 for 1000 Tokens & Packs)            -->
+  <!-- ===================================================================== -->
+  <div
+    id="gpayModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+  >
+    <div class="w-full max-w-md overflow-hidden rounded-3xl border border-slate-700/80 glass-panel shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+        <div class="flex items-center gap-2">
+          <span class="rounded-lg bg-white px-2 py-0.5 font-sans text-xs font-black text-slate-900">G Pay</span>
+          <h3 class="font-display text-base font-black text-white">Оплата через Google Pay</h3>
+        </div>
+        <button
+          id="closeGpayModalBtn"
+          type="button"
+          class="rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-bold text-slate-400 hover:text-white"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div class="rounded-2xl border border-emerald-500/30 bg-obsidian p-4">
+          <div class="text-xs font-semibold text-emerald-400">Выбранный пакет</div>
+          <div id="gpayLotTitle" class="mt-0.5 font-display text-lg font-black text-white">1,000 Токенов — Пакет Google Pay</div>
+          <div class="mt-3 flex items-center justify-between border-t border-slate-800 pt-3">
+            <div>
+              <div class="text-[11px] text-slate-400">К оплате</div>
+              <div id="gpayUsdAmount" class="font-mono text-xl font-black text-white">$10.00</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[11px] text-slate-400">Вы получите</div>
+              <div id="gpayTokensReward" class="font-mono text-xl font-black text-amber-400">+1,000 🪙</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulated Google Pay Card Selector -->
+        <div class="rounded-2xl border border-slate-800 bg-obsidian/70 p-3.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-slate-300">💳 Google Pay • Visa •••• 4242</span>
+            <span class="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">Активна</span>
+          </div>
+        </div>
+
+        <button
+          id="confirmGpayBtn"
+          type="button"
+          class="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-lg transition hover:bg-slate-100"
+        >
+          <span>Оплатить через Google Pay</span>
+        </button>
+
+        <button
+          id="gpayWriteAdminBtn"
+          type="button"
+          class="w-full rounded-xl border border-violet-500/40 bg-violet-500/10 py-2.5 text-xs font-bold text-violet-300 transition hover:bg-violet-500/20"
+        >
+          💬 Написать Админу по покупке этого пакета
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: PUBLISH NEW LOT (Разместить лот)                             -->
+  <!-- ===================================================================== -->
+  <div
+    id="publishModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+  >
+    <div class="w-full max-w-md overflow-hidden rounded-3xl border border-slate-700/80 glass-panel shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+        <h3 class="font-display text-base font-black text-white">➕ Разместить новый лот</h3>
+        <button
+          id="closePublishModalBtn"
+          type="button"
+          class="rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-bold text-slate-400 hover:text-white"
+        >
+          ✕
+        </button>
+      </div>
+
+      <form id="publishLotForm" class="p-6 space-y-3.5">
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-slate-300">Тип лота</label>
+          <select
+            id="lotKindSelect"
+            class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 text-xs font-semibold text-white outline-none focus:border-violet-500"
+          >
+            <option value="item">⚔️ Игровой товар (продажа за токены 🪙)</option>
+            <option value="gpay">💳 Пакет токенов Google Pay (оплата в $ USD)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-slate-300">Название лота</label>
+          <input
+            id="lotTitleInput"
+            type="text"
+            required
+            placeholder="Например: Аркановый Клинок Бездны"
+            class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 text-xs text-white outline-none focus:border-violet-500"
+          />
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-slate-300">Описание</label>
+          <textarea
+            id="lotDescInput"
+            rows="2"
+            required
+            placeholder="Краткое описание предмета или пакета токенов..."
+            class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2 text-xs text-white outline-none focus:border-violet-500"
+          ></textarea>
+        </div>
+
+        <!-- Fields for Item Lot -->
+        <div id="itemLotFields">
+          <label class="mb-1 block text-xs font-semibold text-slate-300">Цена в токенах (🪙)</label>
+          <input
+            id="lotTokenCostInput"
+            type="number"
+            min="1"
+            value="1000"
+            class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 font-mono text-xs font-bold text-amber-300 outline-none focus:border-violet-500"
+          />
+        </div>
+
+        <!-- Fields for Google Pay Lot -->
+        <div id="gpayLotFields" class="hidden grid-cols-2 gap-3">
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-300">Цена в USD ($)</label>
+            <input
+              id="lotUsdPriceInput"
+              type="number"
+              min="1"
+              value="10"
+              class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 font-mono text-xs font-bold text-emerald-300 outline-none focus:border-violet-500"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-300">Награда в токенах (🪙)</label>
+            <input
+              id="lotTokensRewardInput"
+              type="number"
+              min="1"
+              value="1000"
+              class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 font-mono text-xs font-bold text-amber-300 outline-none focus:border-violet-500"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-300">Иконка</label>
+            <select
+              id="lotIconInput"
+              class="w-full rounded-xl border border-slate-700 bg-obsidian px-3 py-2 text-xs text-white outline-none"
+            >
+              <option value="⚔️">⚔️ Меч / Оружие</option>
+              <option value="🛡️">🛡️ Щит / Броня</option>
+              <option value="🐉">🐉 Питомец / Маунт</option>
+              <option value="🪙">🪙 Токены</option>
+              <option value="💎">💎 Кристаллы</option>
+              <option value="🎁">🎁 Кейс / Пропуск</option>
+              <option value="🔥">🔥 Спец-пак</option>
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-300">Тег редкости</label>
+            <select
+              id="lotTagInput"
+              class="w-full rounded-xl border border-slate-700 bg-obsidian px-3 py-2 text-xs text-white outline-none"
+            >
+              <option value="Легендарный">Легендарный</option>
+              <option value="Редкий">Редкий</option>
+              <option value="Google Pay">Google Pay</option>
+              <option value="Популярное">Популярное</option>
+              <option value="Эксклюзив">Эксклюзив</option>
+            </select>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3 text-xs font-extrabold uppercase tracking-wider text-white shadow-neon transition hover:brightness-110"
+        >
+          🚀 Опубликовать лот в магазине
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 4: ONLINE PLAYERS RADAR                                         -->
+  <!-- ===================================================================== -->
+  <div
+    id="onlineModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+  >
+    <div class="w-full max-w-md overflow-hidden rounded-3xl border border-slate-700/80 glass-panel shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+        <div class="flex items-center gap-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse-soft"></span>
+          <h3 class="font-display text-base font-black text-white">Игроки сейчас в сети</h3>
+        </div>
+        <button
+          id="closeOnlineModalBtn"
+          type="button"
+          class="rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-bold text-slate-400 hover:text-white"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="p-6">
+        <div id="onlineUsersList" class="max-h-72 space-y-2 overflow-y-auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 5: GITHUB SERVERS CLOUD SYNC (api.github.com/gists)             -->
+  <!-- ===================================================================== -->
+  <div
+    id="githubModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+  >
+    <div class="w-full max-w-lg overflow-hidden rounded-3xl border border-slate-700/80 glass-panel shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🐙</span>
+          <h3 class="font-display text-base font-black text-white">Синхронизация с серверами GitHub</h3>
+        </div>
+        <button
+          id="closeGithubModalBtn"
+          type="button"
+          class="rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-bold text-slate-400 hover:text-white"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div class="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-3.5 leading-relaxed text-slate-200">
+          Подключите <strong>GitHub Personal Access Token</strong> (с галочкой <code>gist</code>), чтобы хранить аккаунты, пароли, онлайн-пульс, первого Админа и чат на серверах <code>api.github.com</code>.
+        </div>
+
+        <div id="ghLastSyncLabel" class="font-mono text-[11px] text-emerald-300">
+          Статус: Локальное хранилище + мульти-вкладки (GitHub Pages)
+        </div>
+
+        <div>
+          <label class="mb-1 block font-semibold text-slate-300">GitHub Personal Access Token (scope: gist)</label>
+          <input
+            id="ghTokenInput"
+            type="password"
+            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+            class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 font-mono text-xs text-white outline-none focus:border-violet-500"
+          />
+        </div>
+
+        <div>
+          <div class="mb-1 flex items-center justify-between">
+            <label class="font-semibold text-slate-300">Gist ID (ID базы данных на сервере GitHub)</label>
+            <button
+              id="createGistBtn"
+              type="button"
+              class="text-[11px] font-bold text-violet-400 hover:underline"
+            >
+              ✨ Создать новую БД на GitHub в 1 клик
+            </button>
+          </div>
+          <input
+            id="ghGistIdInput"
+            type="text"
+            placeholder="Оставьте пустым и нажмите «Создать новую БД» или вставьте ID..."
+            class="w-full rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 font-mono text-xs text-white outline-none focus:border-violet-500"
+          />
+        </div>
+
+        <label class="flex items-center gap-2 text-slate-300">
+          <input id="ghAutoSyncCheck" type="checkbox" checked class="rounded border-slate-700 text-violet-600" />
+          <span>Автоматически синхронизировать онлайн и баланс каждые 6 секунд</span>
+        </label>
+
+        <div class="flex flex-wrap gap-2 pt-2">
+          <button
+            id="saveGithubConfigBtn"
+            type="button"
+            class="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-extrabold text-white shadow-neon hover:brightness-110"
+          >
+            💾 Сохранить и синхронизировать с GitHub
+          </button>
+          <button
+            id="pullGithubBtn"
+            type="button"
+            class="rounded-xl border border-slate-700 bg-obsidian px-3.5 py-2.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+          >
+            🔄 Загрузить с сервера
+          </button>
+        </div>
+
+        <div class="border-t border-slate-800 pt-3">
+          <button
+            id="copyServerLinkBtn"
+            type="button"
+            class="w-full rounded-xl border border-emerald-500/40 bg-emerald-500/15 py-2.5 text-xs font-bold text-emerald-300 transition hover:bg-emerald-500/25"
+          >
+            🔗 Скопировать ссылку на сайт с подключённым сервером для игроков
+          </button>
+          <p class="mt-1 text-center text-[11px] text-slate-400">
+            Отправьте эту ссылку игрокам — они сразу попадут на ваш сервер, где вы уже единственный Админ
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC                                                     -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * NexusLoot — Storefront Engine with Strict Single-Admin Lock & Live Online Heartbeat
+     * - STRICT ADMIN LOCK: Only the very first registered user (locked by adminUserId & earliest timestamp) can EVER be Admin.
+     * - REALTIME ONLINE PRESENCE: Heartbeat every 6s + GitHub Gist Fetch-Merge-Push + BroadcastChannel so Admin sees real online players.
+     */
+    (function () {
+      const STORAGE_KEY = 'NEXUSLOOT_STATE_V3';
+      const GH_CONFIG_KEY = 'NEXUSLOOT_GH_CONFIG_V3';
+      const GIST_FILENAME = 'nexusloot_db.json';
+      const ONLINE_TTL_MS = 25000; // User is considered online if heartbeat was within last 25 seconds
+
+      // Cross-tab realtime channel so testing in multiple browser tabs updates online & admin instantly
+      const liveChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('nexusloot_live_sync') : null;
+
+      const defaultLots = [
+        {
+          id: 'lot-gpay-1000',
+          kind: 'gpay',
+          featured: true,
+          title: '1,000 Токенов — Пакет Google Pay',
+          description: 'Мгновенное зачисление 1000 токенов на ваш аккаунт через Google Pay по спец-цене $10.',
+          usdPrice: 10,
+          tokensReward: 1000,
+          tokenCost: 0,
+          icon: '🪙',
+          tag: 'Google Pay'
+        },
+        {
+          id: 'lot-gpay-250',
+          kind: 'gpay',
+          featured: false,
+          title: '250 Токенов — Стартовый набор',
+          description: 'Быстрый старт для покупки базовых предметов, скинов и боевых кейсов.',
+          usdPrice: 3,
+          tokensReward: 250,
+          tokenCost: 0,
+          icon: '💎',
+          tag: 'Google Pay'
+        },
+        {
+          id: 'lot-gpay-5000',
+          kind: 'gpay',
+          featured: false,
+          title: '5,000 Токенов + Бонус 500',
+          description: 'Крупный пак токенов через Google Pay с бонусом +500 токенов сверху.',
+          usdPrice: 45,
+          tokensReward: 5500,
+          tokenCost: 0,
+          icon: '🔥',
+          tag: 'Google Pay'
+        },
+        {
+          id: 'lot-item-blade',
+          kind: 'item',
+          featured: false,
+          title: 'Клинок Квантового Разлома',
+          description: 'Редкое энергетическое оружие с эффектом неонового кристаллического следа.',
+          usdPrice: 0,
+          tokensReward: 0,
+          tokenCost: 850,
+          icon: '⚔️',
+          tag: 'Редкий'
+        },
+        {
+          id: 'lot-item-dragon',
+          kind: 'item',
+          featured: false,
+          title: 'Обсидиановый Дракон-Спутник',
+          description: 'Легендарный питомец с аурой пламени, отображающийся рядом с вашим ником.',
+          usdPrice: 0,
+          tokensReward: 0,
+          tokenCost: 2200,
+          icon: '🐉',
+          tag: 'Легендарный'
+        },
+        {
+          id: 'lot-item-pass',
+          kind: 'item',
+          featured: false,
+          title: 'Сезонный Пропуск Nexus VIP',
+          description: 'Открывает эксклюзивные награды кибер-сезона и золотую рамку профиля.',
+          usdPrice: 0,
+          tokensReward: 0,
+          tokenCost: 1000,
+          icon: '🎁',
+          tag: 'Популярное'
+        }
+      ];
+
+      // Application state
+      const state = {
+        adminUserId: null, // Strictly locked ID of the very first registered user
+        users: [], // { id, nickname, passwordHash, contact, avatar, isAdmin, tokens, online, lastSeen, createdAt, createdAtMs }
+        currentUserId: null,
+        filter: 'all',
+        searchQuery: '',
+        selectedAvatar: '🦊',
+        selectedGpayLotId: null,
+        unreadCount: 1,
+        lots: defaultLots,
+        messages: [
+          {
+            id: 'msg-welcome',
+            senderId: 'system-admin',
+            senderName: 'Администратор NexusLoot',
+            senderRole: 'admin',
+            text: 'Привет! Здесь вы можете написать по поводу покупки токенов (например, 1000 токенов за $10 через Google Pay) или запросить выдачу.',
+            time: nowTime()
+          }
+        ]
+      };
+
+      const ghConfig = {
+        token: '',
+        gistId: '',
+        autoSync: true,
+        connected: false,
+        isSyncing: false
+      };
+
+      function nowTime() {
+        const d = new Date();
+        return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      // Deterministic password hash
+      function hashPassword(rawPassword, nicknameSalt) {
+        const str = `${String(nicknameSalt).trim().toLowerCase()}::${String(rawPassword)}::nexusloot_salt_v2`;
+        let h1 = 0xdeadbeef ^ str.length;
+        let h2 = 0x41c6ce57 ^ str.length;
+        for (let i = 0; i < str.length; i++) {
+          const ch = str.charCodeAt(i);
+          h1 = Math.imul(h1 ^ ch, 2654435761);
+          h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+        return 'nlh_' + (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+      }
+
+      /**
+       * STRICT SINGLE-ADMIN ENFORCER:
+       * Guarantees that ONLY the very first user ever registered has isAdmin = true.
+       * Nobody registered after the first user can ever become Admin.
+       */
+      function enforceSingleFirstAdmin() {
+        if (!Array.isArray(state.users) || state.users.length === 0) {
+          state.adminUserId = null;
+          return;
+        }
+
+        state.users.forEach((u, index) => {
+          if (typeof u.createdAtMs !== 'number') {
+            const parsedFromId = Number(String(u.id || '').replace('user-', ''));
+            u.createdAtMs = !isNaN(parsedFromId) && parsedFromId > 1000000000000 ? parsedFromId : (1700000000000 + index);
+          }
+        });
+
+        state.users.sort((a, b) => a.createdAtMs - b.createdAtMs);
+
+        const existingLockedAdmin = state.adminUserId && state.users.find(u => u.id === state.adminUserId);
+        if (!existingLockedAdmin) {
+          state.adminUserId = state.users[0].id;
+        }
+
+        state.users.forEach(u => {
+          u.isAdmin = (u.id === state.adminUserId);
+        });
+      }
+
+      /**
+       * Checks whether a user is genuinely online right now based on their heartbeat timestamp
+       */
+      function isUserOnline(user) {
+        if (!user) return false;
+        if (user.online === false) return false;
+        if (state.currentUserId && user.id === state.currentUserId) return true;
+        const lastSeen = Number(user.lastSeen || 0);
+        return (Date.now() - lastSeen) < ONLINE_TTL_MS;
+      }
+
+      /**
+       * Merges incoming (remote/other-tab) database state with local state without losing users,
+       * preserving the earliest Admin lock and keeping accurate online timestamps.
+       */
+      function mergeDatabaseState(remoteData) {
+        if (!remoteData || typeof remoteData !== 'object') return;
+
+        if (Array.isArray(remoteData.users)) {
+          const mergedMap = new Map();
+
+          remoteData.users.forEach(ru => {
+            if (ru && ru.id) {
+              mergedMap.set(ru.id, { ...ru });
+            }
+          });
+
+          state.users.forEach(lu => {
+            if (!lu || !lu.id) return;
+            const existingByNick = Array.from(mergedMap.values()).find(
+              u => u.nickname.toLowerCase() === lu.nickname.toLowerCase()
+            );
+            const targetKey = existingByNick ? existingByNick.id : lu.id;
+            const prev = mergedMap.get(targetKey);
+
+            if (!prev) {
+              mergedMap.set(lu.id, { ...lu });
+            } else {
+              const usePrevIdentity = (prev.createdAtMs || 0) <= (lu.createdAtMs || Infinity);
+              const isLocalActiveUser = (state.currentUserId === lu.id || state.currentUserId === prev.id);
+              const newerLastSeen = Math.max(Number(prev.lastSeen || 0), Number(lu.lastSeen || 0));
+
+              mergedMap.set(targetKey, {
+                ...prev,
+                ...lu,
+                id: usePrevIdentity ? prev.id : lu.id,
+                passwordHash: prev.passwordHash || lu.passwordHash,
+                createdAtMs: Math.min(Number(prev.createdAtMs || Date.now()), Number(lu.createdAtMs || Date.now())),
+                tokens: (Number(prev.tokensUpdatedAt || 0) > Number(lu.tokensUpdatedAt || 0))
+                  ? Number(prev.tokens)
+                  : Number(lu.tokens),
+                tokensUpdatedAt: Math.max(Number(prev.tokensUpdatedAt || 0), Number(lu.tokensUpdatedAt || 0)),
+                lastSeen: isLocalActiveUser ? Date.now() : newerLastSeen,
+                online: isLocalActiveUser
+                  ? true
+                  : ((Number(prev.lastSeen || 0) >= Number(lu.lastSeen || 0)) ? prev.online : lu.online)
+              });
+
+              if (state.currentUserId === lu.id && usePrevIdentity) {
+                state.currentUserId = prev.id;
+              }
+            }
+          });
+
+          state.users = Array.from(mergedMap.values());
+        }
+
+        if (remoteData.adminUserId && !state.adminUserId) {
+          state.adminUserId = remoteData.adminUserId;
+        }
+        enforceSingleFirstAdmin();
+
+        if (Array.isArray(remoteData.lots) && remoteData.lots.length > 0) {
+          const lotMap = new Map();
+          remoteData.lots.forEach(l => { if (l && l.id) lotMap.set(l.id, l); });
+          state.lots.forEach(l => { if (l && l.id && !lotMap.has(l.id)) lotMap.set(l.id, l); });
+          state.lots = Array.from(lotMap.values());
+        }
+
+        if (Array.isArray(remoteData.messages) && remoteData.messages.length > 0) {
+          const msgMap = new Map();
+          remoteData.messages.forEach(m => { if (m && m.id) msgMap.set(m.id, m); });
+          state.messages.forEach(m => { if (m && m.id) msgMap.set(m.id, m); });
+          state.messages = Array.from(msgMap.values()).slice(-100);
+        }
+      }
+
+      function checkUrlServerInvite() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const invitedGist = params.get('gist');
+          const invitedTokenEncoded = params.get('k');
+          if (invitedGist) {
+            ghConfig.gistId = invitedGist.trim();
+            if (invitedTokenEncoded) {
+              try {
+                ghConfig.token = atob(invitedTokenEncoded);
+              } catch (e) {}
+            }
+            ghConfig.autoSync = true;
+            saveGhConfig();
+          }
+        } catch (err) {}
+      }
+
+      function loadLocalState() {
+        try {
+          const tabUserId = sessionStorage.getItem('NEXUSLOOT_TAB_USER_ID');
+          if (tabUserId) {
+            state.currentUserId = tabUserId;
+          }
+
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            mergeDatabaseState(parsed);
+            if (!state.currentUserId && parsed.currentUserId) {
+              state.currentUserId = parsed.currentUserId;
+            }
+          }
+          const rawGh = localStorage.getItem(GH_CONFIG_KEY);
+          if (rawGh) {
+            const parsedGh = JSON.parse(rawGh);
+            ghConfig.token = parsedGh.token || '';
+            ghConfig.gistId = parsedGh.gistId || '';
+            ghConfig.autoSync = parsedGh.autoSync !== false;
+          }
+          enforceSingleFirstAdmin();
+        } catch (err) {
+          console.warn('Local state load fallback:', err);
+        }
+      }
+
+      function saveLocalState(broadcast = true) {
+        try {
+          enforceSingleFirstAdmin();
+          if (state.currentUserId) {
+            sessionStorage.setItem('NEXUSLOOT_TAB_USER_ID', state.currentUserId);
+          } else {
+            sessionStorage.removeItem('NEXUSLOOT_TAB_USER_ID');
+          }
+
+          const serializedPayload = {
+            adminUserId: state.adminUserId,
+            users: state.users,
+            lots: state.lots,
+            messages: state.messages,
+            updatedAt: Date.now()
+          };
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedPayload));
+
+          if (broadcast && liveChannel) {
+            liveChannel.postMessage(serializedPayload);
+          }
+        } catch (err) {
+          console.warn('Local state save warning:', err);
+        }
+      }
+
+      function saveGhConfig() {
+        try {
+          localStorage.setItem(GH_CONFIG_KEY, JSON.stringify({
+            token: ghConfig.token,
+            gistId: ghConfig.gistId,
+            autoSync: ghConfig.autoSync
+          }));
+        } catch (err) {
+          console.warn('GitHub config save warning:', err);
+        }
+      }
+
+      function updateGhStatusUI(statusText, statusMode) {
+        const dot = document.getElementById('ghStatusDot');
+        const text = document.getElementById('ghStatusText');
+        const label = document.getElementById('ghLastSyncLabel');
+
+        text.textContent = statusText;
+        if (statusMode === 'connected') {
+          dot.className = 'h-2 w-2 rounded-full bg-emerald-400 animate-pulse-soft';
+          label.textContent = `Синхронизировано с GitHub API (${nowTime()}) • Gist: ${ghConfig.gistId.slice(0, 8)}...`;
+        } else if (statusMode === 'error') {
+          dot.className = 'h-2 w-2 rounded-full bg-rose-500';
+          label.textContent = `Ошибка связи с api.github.com — проверьте Token или Gist ID`;
+        } else {
+          dot.className = 'h-2 w-2 rounded-full bg-amber-400';
+          label.textContent = 'Статус: Локальное хранилище + мульти-вкладки (GitHub Pages)';
+        }
+      }
+
+      async function createGithubGist() {
+        const token = document.getElementById('ghTokenInput').value.trim();
+        if (!token) {
+          showToast('Для создания облачной БД на сервере GitHub введите Personal Access Token (с правом gist).', 'warning');
+          return;
+        }
+        try {
+          enforceSingleFirstAdmin();
+          updateGhStatusUI('Создание...', 'local');
+          const payload = {
+            description: 'NexusLoot Gaming Marketplace Database',
+            public: false,
+            files: {
+              [GIST_FILENAME]: {
+                content: JSON.stringify({
+                  adminUserId: state.adminUserId,
+                  users: state.users,
+                  lots: state.lots,
+                  messages: state.messages,
+                  updatedAt: Date.now()
+                }, null, 2)
+              }
+            }
+          };
+          const res = await fetch('https://api.github.com/gists', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/vnd.github+json',
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error('GitHub API status ' + res.status);
+          const data = await res.json();
+          ghConfig.token = token;
+          ghConfig.gistId = data.id;
+          ghConfig.connected = true;
+          document.getElementById('ghGistIdInput').value = data.id;
+          saveGhConfig();
+          updateGhStatusUI('Online (Gist)', 'connected');
+          showToast(`🐙 База данных создана на сервере GitHub! Gist ID: ${data.id}`, 'success');
+        } catch (err) {
+          updateGhStatusUI('Ошибка API', 'error');
+          showToast('Не удалось создать Gist на сервере GitHub. Проверьте токен (нужны права gist).', 'warning');
+        }
+      }
+
+      async function pushStateToGithub() {
+        const cur = getCurrentUser();
+        if (cur) {
+          cur.online = true;
+          cur.lastSeen = Date.now();
+        }
+        saveLocalState(true);
+
+        if (!ghConfig.gistId || !ghConfig.token || ghConfig.isSyncing) return;
+        ghConfig.isSyncing = true;
+        try {
+          const getHeaders = {
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${ghConfig.token}`
+          };
+          const getRes = await fetch(`https://api.github.com/gists/${encodeURIComponent(ghConfig.gistId)}?t=${Date.now()}`, {
+            headers: getHeaders,
+            cache: 'no-store'
+          });
+          if (getRes.ok) {
+            const getData = await getRes.json();
+            const fileObj = getData.files && (getData.files[GIST_FILENAME] || Object.values(getData.files)[0]);
+            if (fileObj && fileObj.content) {
+              const remote = JSON.parse(fileObj.content);
+              mergeDatabaseState(remote);
+            }
+          }
+
+          enforceSingleFirstAdmin();
+          saveLocalState(true);
+
+          const payload = {
+            files: {
+              [GIST_FILENAME]: {
+                content: JSON.stringify({
+                  adminUserId: state.adminUserId,
+                  users: state.users,
+                  lots: state.lots,
+                  messages: state.messages,
+                  updatedAt: Date.now()
+                }, null, 2)
+              }
+            }
+          };
+          const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(ghConfig.gistId)}`, {
+            method: 'PATCH',
+            headers: {
+              'Accept': 'application/vnd.github+json',
+              'Authorization': `Bearer ${ghConfig.token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error('GitHub PATCH failed ' + res.status);
+          ghConfig.connected = true;
+          updateGhStatusUI('Online (Gist)', 'connected');
+          renderAll();
+        } catch (err) {
+          updateGhStatusUI('Ошибка синхр.', 'error');
+        } finally {
+          ghConfig.isSyncing = false;
+        }
+      }
+
+      async function pullStateFromGithub(silent = false) {
+        if (!ghConfig.gistId) {
+          if (!silent) showToast('Укажите Gist ID для загрузки данных с сервера GitHub.', 'warning');
+          return;
+        }
+        try {
+          const headers = { 'Accept': 'application/vnd.github+json' };
+          if (ghConfig.token) headers['Authorization'] = `Bearer ${ghConfig.token}`;
+          const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(ghConfig.gistId)}?t=${Date.now()}`, {
+            headers,
+            cache: 'no-store'
+          });
+          if (!res.ok) throw new Error('GitHub GET failed ' + res.status);
+          const data = await res.json();
+          const fileObj = data.files && (data.files[GIST_FILENAME] || Object.values(data.files)[0]);
+          if (fileObj && fileObj.content) {
+            const remote = JSON.parse(fileObj.content);
+            mergeDatabaseState(remote);
+            enforceSingleFirstAdmin();
+            saveLocalState(true);
+            renderAll();
+            ghConfig.connected = true;
+            updateGhStatusUI('Online (Gist)', 'connected');
+            if (!silent) showToast('🐙 Данные и список онлайн-игроков загружены с сервера GitHub!', 'success');
+          }
+        } catch (err) {
+          updateGhStatusUI('Ошибка API', 'error');
+          if (!silent) showToast('Ошибка чтения с сервера GitHub. Проверьте Gist ID и токен.', 'warning');
+        }
+      }
+
+      function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const colors = {
+          success: 'border-emerald-500/50 bg-emerald-950/95 text-emerald-200 shadow-emeraldGlow',
+          warning: 'border-amber-500/50 bg-amber-950/95 text-amber-200 shadow-goldGlow',
+          info: 'border-violet-500/50 bg-slate-900/95 text-slate-100 shadow-neon'
+        };
+        toast.className = `pointer-events-auto rounded-2xl border px-4 py-3 text-xs font-semibold backdrop-blur-md transition-all ${colors[type] || colors.info}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(8px)';
+          setTimeout(() => toast.remove(), 250);
+        }, 3200);
+      }
+
+      function getCurrentUser() {
+        return state.users.find(u => u.id === state.currentUserId) || null;
+      }
+
+      function getAdminUser() {
+        enforceSingleFirstAdmin();
+        return state.users.find(u => u.id === state.adminUserId) || null;
+      }
+
+      function getOnlineUsers() {
+        return state.users.filter(u => isUserOnline(u));
+      }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      // ===================================================================
+      // RENDER FUNCTIONS
+      // ===================================================================
+      function renderHeaderAndStats() {
+        enforceSingleFirstAdmin();
+        const currentUser = getCurrentUser();
+        const adminUser = getAdminUser();
+        const onlineUsers = getOnlineUsers();
+
+        document.getElementById('onlineCountHeader').textContent = onlineUsers.length;
+        document.getElementById('statOnlineUsers').textContent = onlineUsers.length;
+        document.getElementById('statTotalUsers').textContent = state.users.length;
+        document.getElementById('statLotsCount').textContent = state.lots.length;
+        document.getElementById('statAdminName').textContent = adminUser
+          ? `${adminUser.avatar} ${adminUser.nickname}`
+          : 'Ожидает 1-го рег.';
+
+        const adminStatusTag = document.getElementById('adminStatusTag');
+        const firstAdminHint = document.getElementById('firstAdminHint');
+        if (adminUser) {
+          adminStatusTag.textContent = `👑 Занят: ${adminUser.nickname}`;
+          firstAdminHint.innerHTML = `🔒 <strong>Админ уже назначен (${escapeHtml(adminUser.nickname)})!</strong> По правилу сервера никто кроме первого человека больше не может стать Администратором. Новые аккаунты получают роль <strong>🎮 Игрок</strong>.`;
+        } else {
+          adminStatusTag.textContent = 'Слот свободен';
+          firstAdminHint.innerHTML = `👑 <strong>Админ-слот свободен!</strong> Самый первый зарегистрированный человек навсегда становится единственным Администратором.`;
+        }
+
+        const roleBadge = document.getElementById('userRoleBadge');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userTokensDisplay = document.getElementById('userTokensDisplay');
+        const regBtnLabel = document.getElementById('regBtnLabel');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        if (currentUser) {
+          const isStrictlyFirstAdmin = (currentUser.id === state.adminUserId);
+          userNameDisplay.textContent = `${currentUser.avatar} ${currentUser.nickname}`;
+          userTokensDisplay.textContent = currentUser.tokens.toLocaleString('ru-RU');
+          regBtnLabel.textContent = 'Аккаунт';
+          logoutBtn.classList.remove('hidden');
+          if (isStrictlyFirstAdmin) {
+            roleBadge.textContent = '👑 АДМИН';
+            roleBadge.className = 'rounded-md bg-amber-500/20 border border-amber-400/40 px-1.5 py-0.5 text-[10px] font-extrabold uppercase text-amber-300';
+          } else {
+            roleBadge.textContent = '🎮 ИГРОК';
+            roleBadge.className = 'rounded-md bg-violet-500/20 border border-violet-400/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-violet-300';
+          }
+        } else {
+          userNameDisplay.textContent = 'Не авторизован';
+          userTokensDisplay.textContent = '0';
+          regBtnLabel.textContent = 'Вход / Регистрация';
+          logoutBtn.classList.add('hidden');
+          roleBadge.textContent = 'ГОСТЬ';
+          roleBadge.className = 'rounded-md bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold uppercase text-slate-300';
+        }
+
+        const adminPanel = document.getElementById('adminPanelSection');
+        if (currentUser && currentUser.id === state.adminUserId) {
+          adminPanel.classList.remove('hidden');
+          renderAdminPanel();
+        } else {
+          adminPanel.classList.add('hidden');
+        }
+
+        const unreadBadge = document.getElementById('unreadBadge');
+        if (state.unreadCount > 0) {
+          unreadBadge.textContent = state.unreadCount;
+          unreadBadge.classList.remove('hidden');
+        } else {
+          unreadBadge.classList.add('hidden');
+        }
+      }
+
+      function renderAdminPanel() {
+        const select = document.getElementById('targetUserSelect');
+        const list = document.getElementById('adminUsersList');
+        const msgCount = document.getElementById('adminMsgCount');
+        const onlineCounterEl = document.getElementById('adminOnlinePlayersCount');
+
+        msgCount.textContent = state.messages.length;
+
+        const onlinePlayers = getOnlineUsers();
+        if (onlineCounterEl) {
+          onlineCounterEl.textContent = onlinePlayers.length;
+        }
+
+        const prevSelectedId = select.value;
+        select.innerHTML = state.users.map(u => {
+          const onlineTag = isUserOnline(u) ? '🟢 В сети' : '⚫ Офлайн';
+          const roleTag = (u.id === state.adminUserId) ? '👑 Админ' : '🎮 Игрок';
+          return `
+            <option value="${u.id}">
+              ${u.avatar} ${escapeHtml(u.nickname)} (${roleTag} • ${onlineTag}) — ${u.tokens} 🪙
+            </option>
+          `;
+        }).join('');
+        if (prevSelectedId && state.users.some(u => u.id === prevSelectedId)) {
+          select.value = prevSelectedId;
+        }
+
+        if (state.users.length === 0) {
+          list.innerHTML = `<p class="text-xs text-slate-400">Пока нет зарегистрированных пользователей.</p>`;
+          return;
+        }
+
+        const sortedForAdmin = [...state.users].sort((a, b) => {
+          const aOn = isUserOnline(a) ? 1 : 0;
+          const bOn = isUserOnline(b) ? 1 : 0;
+          if (aOn !== bOn) return bOn - aOn;
+          return (a.createdAtMs || 0) - (b.createdAtMs || 0);
+        });
+
+        list.innerHTML = sortedForAdmin.map(u => {
+          const online = isUserOnline(u);
+          const isSoleAdmin = (u.id === state.adminUserId);
+          return `
+            <div class="flex flex-wrap items-center justify-between gap-2 rounded-2xl border ${online ? 'border-emerald-500/35 bg-surface' : 'border-slate-800/80 bg-obsidian/50 opacity-75'} px-3.5 py-2.5">
+              <div class="flex items-center gap-2.5">
+                <span class="text-xl">${u.avatar}</span>
+                <div>
+                  <div class="flex flex-wrap items-center gap-1.5 text-xs font-bold text-white">
+                    <span>${escapeHtml(u.nickname)}</span>
+                    ${isSoleAdmin
+                      ? '<span class="rounded-md bg-amber-500/20 border border-amber-400/30 px-1.5 py-0.5 text-[10px] text-amber-300">👑 Первый (Админ)</span>'
+                      : '<span class="rounded-md bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-300">🎮 Игрок</span>'
+                    }
+                    ${online
+                      ? `<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                           <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-soft"></span> В сети
+                         </span>`
+                      : `<span class="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400">
+                           <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> Не в сети
+                         </span>`
+                    }
+                  </div>
+                  <div class="mt-0.5 text-[11px] text-slate-400">
+                    Баланс: <strong class="font-mono text-amber-300">${u.tokens.toLocaleString('ru-RU')} 🪙</strong>
+                    ${u.contact ? ` • Контакт: <span class="text-slate-300">${escapeHtml(u.contact)}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  data-grant-user="${u.id}"
+                  data-grant-amount="1000"
+                  class="quick-grant-btn rounded-xl bg-emerald-500/20 border border-emerald-500/40 px-3 py-1.5 font-mono text-[11px] font-extrabold text-emerald-300 transition hover:bg-emerald-500/30"
+                >
+                  +1000 🪙
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderLots() {
+        const grid = document.getElementById('lotsGrid');
+        const q = state.searchQuery.trim().toLowerCase();
+
+        const filtered = state.lots.filter(lot => {
+          if (state.filter !== 'all' && lot.kind !== state.filter) return false;
+          if (q && !lot.title.toLowerCase().includes(q) && !lot.description.toLowerCase().includes(q)) return false;
+          return true;
+        });
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full rounded-3xl border border-slate-800 glass-panel p-10 text-center">
+              <div class="text-3xl mb-2">🔍</div>
+              <div class="font-display text-base font-bold text-white">Лоты не найдены</div>
+              <p class="mt-1 text-xs text-slate-400">Попробуйте изменить фильтр или разместите свой собственный лот!</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(lot => {
+          const isGpay = lot.kind === 'gpay';
+          const borderClass = lot.featured
+            ? 'border-emerald-500/60 shadow-emeraldGlow'
+            : isGpay
+              ? 'border-cyan-500/35 hover:border-cyan-400/70'
+              : 'border-slate-800/90 hover:border-violet-500/60';
+
+          const badgeColor = isGpay
+            ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-300'
+            : lot.tag === 'Легендарный'
+              ? 'border-amber-400/40 bg-amber-500/15 text-amber-300'
+              : 'border-violet-400/40 bg-violet-500/15 text-violet-300';
+
+          return `
+            <article class="lot-card flex flex-col justify-between rounded-3xl border ${borderClass} glass-panel p-5">
+              <div>
+                <!-- Top Card Row -->
+                <div class="mb-4 flex items-center justify-between gap-2">
+                  <span class="rounded-full border ${badgeColor} px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider">
+                    ${escapeHtml(lot.tag || (isGpay ? 'Google Pay' : 'Товар'))}
+                  </span>
+                  ${lot.featured
+                    ? '<span class="rounded-full bg-amber-400/20 px-2.5 py-0.5 font-mono text-[10px] font-black text-amber-300">★ ВЫБОР ИГРОКОВ</span>'
+                    : `<span class="font-mono text-[10px] text-slate-500">${isGpay ? 'USD / GPAY' : 'ЗА ТОКЕНЫ'}</span>`
+                  }
+                </div>
+
+                <!-- Icon & Title -->
+                <div class="mb-3 flex items-start gap-3.5">
+                  <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-slate-700/80 bg-obsidian text-3xl shadow-inner">
+                    ${lot.icon || '🎁'}
+                  </div>
+                  <div>
+                    <h3 class="font-display text-base font-extrabold leading-snug text-white">
+                      ${escapeHtml(lot.title)}
+                    </h3>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">
+                      ${escapeHtml(lot.description)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Price & Action Footer -->
+              <div class="mt-4 border-t border-slate-800/80 pt-4">
+                ${isGpay ? `
+                  <div class="mb-3 flex items-center justify-between">
+                    <div>
+                      <div class="text-[10px] uppercase tracking-wider text-slate-400">Оплата Google Pay</div>
+                      <div class="font-mono text-xl font-black text-white">$${Number(lot.usdPrice).toFixed(2)}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-[10px] uppercase tracking-wider text-slate-400">Начисление</div>
+                      <div class="font-mono text-base font-extrabold text-amber-400">+${Number(lot.tokensReward).toLocaleString('ru-RU')} 🪙</div>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      data-lot-action="buy"
+                      data-lot-id="${lot.id}"
+                      class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-xs font-black text-slate-950 transition hover:bg-slate-200"
+                    >
+                      <span class="font-sans font-black"><span class="text-blue-600">G</span> Pay</span>
+                      <span>• Купить за $${lot.usdPrice}</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-lot-action="ask-admin"
+                      data-lot-id="${lot.id}"
+                      class="rounded-xl border border-slate-700 bg-obsidian px-3 py-2.5 text-xs font-bold text-slate-300 transition hover:border-violet-500 hover:text-white"
+                      title="Написать Админу по поводу этого пакета"
+                    >
+                      💬
+                    </button>
+                  </div>
+                ` : `
+                  <div class="mb-3 flex items-center justify-between">
+                    <div>
+                      <div class="text-[10px] uppercase tracking-wider text-slate-400">Стоимость предмета</div>
+                      <div class="font-mono text-xl font-black text-amber-300">${Number(lot.tokenCost).toLocaleString('ru-RU')} 🪙</div>
+                    </div>
+                    <span class="rounded-lg bg-slate-800/90 px-2 py-1 text-[10px] font-semibold text-slate-300">Мгновенно</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      data-lot-action="buy"
+                      data-lot-id="${lot.id}"
+                      class="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-extrabold text-white shadow-neon transition hover:brightness-110"
+                    >
+                      🛒 Купить за ${Number(lot.tokenCost).toLocaleString('ru-RU')} 🪙
+                    </button>
+                    <button
+                      type="button"
+                      data-lot-action="ask-admin"
+                      data-lot-id="${lot.id}"
+                      class="rounded-xl border border-slate-700 bg-obsidian px-3 py-2.5 text-xs font-bold text-slate-300 transition hover:border-violet-500 hover:text-white"
+                      title="Спросить у Админа"
+                    >
+                      💬
+                    </button>
+                  </div>
+                `}
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      function renderChatMessages() {
+        const list = document.getElementById('chatMessagesList');
+        const currentUser = getCurrentUser();
+        const isCurrentAdmin = currentUser && currentUser.id === state.adminUserId;
+
+        list.innerHTML = state.messages.map(m => {
+          const isAdminMsg = m.senderRole === 'admin';
+          const canGrantToSender = isCurrentAdmin && m.senderId && m.senderId !== 'system-admin' && m.senderId !== state.adminUserId;
+
+          return `
+            <div class="rounded-2xl border ${isAdminMsg ? 'border-amber-500/35 bg-amber-950/20' : 'border-slate-800 bg-obsidian/90'} p-3">
+              <div class="mb-1 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold ${isAdminMsg ? 'text-amber-300' : 'text-violet-300'}">
+                    ${escapeHtml(m.senderName)}
+                  </span>
+                  <span class="rounded px-1.5 py-0.5 text-[9px] font-extrabold uppercase ${isAdminMsg ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-800 text-slate-400'}">
+                    ${isAdminMsg ? '👑 АДМИН' : '🎮 ИГРОК'}
+                  </span>
+                </div>
+                <span class="font-mono text-[10px] text-slate-500">${escapeHtml(m.time)}</span>
+              </div>
+              <p class="text-xs leading-relaxed text-slate-200">${escapeHtml(m.text)}</p>
+              ${canGrantToSender ? `
+                <div class="mt-2 border-t border-slate-800/80 pt-2">
+                  <button
+                    type="button"
+                    data-chat-grant-user="${m.senderId}"
+                    class="chat-grant-btn rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 font-mono text-[10px] font-bold text-emerald-300 hover:bg-emerald-500/25"
+                  >
+                    ⚡ Выдать +1000 🪙 этому игроку
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        list.scrollTop = list.scrollHeight;
+      }
+
+      function renderOnlineUsersModal() {
+        const list = document.getElementById('onlineUsersList');
+        const online = getOnlineUsers();
+        if (online.length === 0) {
+          list.innerHTML = `
+            <div class="rounded-2xl border border-slate-800 bg-obsidian p-5 text-center text-xs text-slate-400">
+              Сейчас нет авторизованных игроков в сети. Войдите или зарегистрируйтесь!
+            </div>
+          `;
+          return;
+        }
+        list.innerHTML = online.map(u => {
+          const isSoleAdmin = (u.id === state.adminUserId);
+          return `
+            <div class="flex items-center justify-between rounded-2xl border border-emerald-500/30 bg-obsidian px-3.5 py-2.5">
+              <div class="flex items-center gap-2.5">
+                <span class="text-lg">${u.avatar}</span>
+                <div>
+                  <div class="text-xs font-bold text-white">${escapeHtml(u.nickname)}</div>
+                  <div class="text-[10px] text-slate-400">${isSoleAdmin ? '👑 Единственный Администратор' : '🎮 Игрок'}</div>
+                </div>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-400">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse-soft"></span> В сети
+              </span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderExistingProfiles() {
+        enforceSingleFirstAdmin();
+        const box = document.getElementById('existingProfilesBox');
+        const list = document.getElementById('existingProfilesList');
+        if (state.users.length === 0) {
+          box.classList.add('hidden');
+          return;
+        }
+        box.classList.remove('hidden');
+        list.innerHTML = state.users.map(u => {
+          const isSoleAdmin = (u.id === state.adminUserId);
+          const online = isUserOnline(u);
+          return `
+            <div class="flex items-center justify-between rounded-xl border border-slate-800 bg-obsidian px-3 py-2 text-xs">
+              <div class="flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full ${online ? 'bg-emerald-400' : 'bg-slate-600'}"></span>
+                <span class="font-bold text-white">${u.avatar} ${escapeHtml(u.nickname)}</span>
+                ${isSoleAdmin
+                  ? '<span class="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">👑 Админ</span>'
+                  : '<span class="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400">Игрок</span>'
+                }
+                <span class="font-mono text-amber-300">${u.tokens} 🪙</span>
+              </div>
+              <button
+                type="button"
+                data-select-login="${escapeHtml(u.nickname)}"
+                class="select-login-btn rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 hover:bg-slate-700"
+              >
+                🔐 Вход
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // ===================================================================
+      // EVENT LISTENERS & INTERACTIONS
+      // ===================================================================
+      const regModal = document.getElementById('regModal');
+      const registerForm = document.getElementById('registerForm');
+      const loginForm = document.getElementById('loginForm');
+      const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+      const tabLoginBtn = document.getElementById('tabLoginBtn');
+
+      function switchAuthTab(mode) {
+        if (mode === 'login') {
+          registerForm.classList.add('hidden');
+          loginForm.classList.remove('hidden');
+          tabLoginBtn.className = 'rounded-xl bg-emerald-500 py-2 text-xs font-extrabold text-slate-950 transition';
+          tabRegisterBtn.className = 'rounded-xl py-2 text-xs font-bold text-slate-400 transition hover:text-white';
+        } else {
+          loginForm.classList.add('hidden');
+          registerForm.classList.remove('hidden');
+          tabRegisterBtn.className = 'rounded-xl bg-violet-600 py-2 text-xs font-extrabold text-white transition';
+          tabLoginBtn.className = 'rounded-xl py-2 text-xs font-bold text-slate-400 transition hover:text-white';
+        }
+      }
+
+      function openRegModal(defaultTab = 'register') {
+        renderExistingProfiles();
+        switchAuthTab(defaultTab);
+        regModal.classList.remove('hidden');
+        regModal.classList.add('flex');
+      }
+
+      function closeRegModal() {
+        regModal.classList.add('hidden');
+        regModal.classList.remove('flex');
+      }
+
+      document.getElementById('openRegModalBtn').addEventListener('click', () => openRegModal('register'));
+      document.getElementById('closeRegModalBtn').addEventListener('click', closeRegModal);
+      tabRegisterBtn.addEventListener('click', () => switchAuthTab('register'));
+      tabLoginBtn.addEventListener('click', () => switchAuthTab('login'));
+
+      // Logout button
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        const cur = getCurrentUser();
+        if (cur) {
+          cur.online = false;
+          cur.lastSeen = 0;
+        }
+        state.currentUserId = null;
+        sessionStorage.removeItem('NEXUSLOOT_TAB_USER_ID');
+        pushStateToGithub();
+        renderAll();
+        showToast('Вы вышли из аккаунта. Ваш статус переведён в «Не в сети».', 'info');
+      });
+
+      // Avatar Picker
+      document.querySelectorAll('.avatar-opt').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.avatar-opt').forEach(b => {
+            b.className = 'avatar-opt rounded-xl border border-slate-700 bg-obsidian px-3 py-1.5 text-lg';
+          });
+          btn.className = 'avatar-opt rounded-xl border border-violet-500 bg-violet-500/20 px-3 py-1.5 text-lg';
+          state.selectedAvatar = btn.dataset.avatar;
+        });
+      });
+
+      // Registration Submit with Password — STRICTLY ONLY FIRST USER EVER IS ADMIN
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nickname = document.getElementById('regNickname').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+        const contact = document.getElementById('regContact').value.trim();
+
+        if (!nickname) return;
+        if (password.length < 4) {
+          showToast('Пароль должен содержать минимум 4 символа.', 'warning');
+          return;
+        }
+        if (password !== passwordConfirm) {
+          showToast('Пароли не совпадают! Проверьте ввод.', 'warning');
+          return;
+        }
+
+        loadLocalState();
+        if (ghConfig.gistId) {
+          await pullStateFromGithub(true);
+        }
+        enforceSingleFirstAdmin();
+
+        const exists = state.users.some(u => u.nickname.toLowerCase() === nickname.toLowerCase());
+        if (exists) {
+          showToast('Такой никнейм уже занят на сервере! Перейдите во вкладку «Вход по паролю».', 'warning');
+          switchAuthTab('login');
+          document.getElementById('loginNickname').value = nickname;
+          return;
+        }
+
+        const isFirstUserEver = (state.users.length === 0 && !state.adminUserId);
+        const nowMs = Date.now();
+        const newUserId = 'user-' + nowMs + '-' + Math.floor(Math.random() * 1000);
+
+        if (isFirstUserEver) {
+          state.adminUserId = newUserId;
+        }
+
+        const newUser = {
+          id: newUserId,
+          nickname,
+          passwordHash: hashPassword(password, nickname),
+          contact,
+          avatar: state.selectedAvatar,
+          isAdmin: isFirstUserEver,
+          tokens: isFirstUserEver ? 5000 : 250,
+          tokensUpdatedAt: nowMs,
+          online: true,
+          lastSeen: nowMs,
+          createdAt: nowTime(),
+          createdAtMs: nowMs
+        };
+
+        state.users.push(newUser);
+        state.currentUserId = newUser.id;
+        enforceSingleFirstAdmin();
+
+        document.getElementById('regNickname').value = '';
+        document.getElementById('regPassword').value = '';
+        document.getElementById('regPasswordConfirm').value = '';
+        document.getElementById('regContact').value = '';
+        closeRegModal();
+        renderAll();
+        await pushStateToGithub();
+
+        if (newUser.id === state.adminUserId) {
+          showToast(`👑 Поздравляем, ${nickname}! Вы первый человек на сервере и стали единственным Администратором.`, 'warning');
+        } else {
+          const adminUser = getAdminUser();
+          showToast(`🎮 Вы зарегистрированы как Игрок (${nickname})! Админ сервера: ${adminUser ? adminUser.nickname : 'Назначен'}.`, 'success');
+        }
+      });
+
+      // Login Submit with Password Verification
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nickname = document.getElementById('loginNickname').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        loadLocalState();
+        if (ghConfig.gistId) {
+          await pullStateFromGithub(true);
+        }
+        enforceSingleFirstAdmin();
+
+        const user = state.users.find(u => u.nickname.toLowerCase() === nickname.toLowerCase());
+        if (!user) {
+          showToast('Пользователь с таким никнеймом не найден на сервере.', 'warning');
+          return;
+        }
+
+        const expectedHash = hashPassword(password, user.nickname);
+        if (user.passwordHash && user.passwordHash !== expectedHash) {
+          showToast('❌ Неверный пароль! Попробуйте снова.', 'warning');
+          return;
+        }
+
+        if (!user.passwordHash) {
+          user.passwordHash = expectedHash;
+        }
+
+        user.online = true;
+        user.lastSeen = Date.now();
+        state.currentUserId = user.id;
+        enforceSingleFirstAdmin();
+
+        document.getElementById('loginPassword').value = '';
+        closeRegModal();
+        renderAll();
+        await pushStateToGithub();
+
+        const isSoleAdmin = (user.id === state.adminUserId);
+        showToast(`🔐 Вы вошли как ${user.nickname} (${isSoleAdmin ? '👑 Администратор' : '🎮 Игрок'})!`, 'success');
+      });
+
+      document.getElementById('existingProfilesList').addEventListener('click', (e) => {
+        const btn = e.target.closest('.select-login-btn');
+        if (!btn) return;
+        const nick = btn.dataset.selectLogin;
+        switchAuthTab('login');
+        document.getElementById('loginNickname').value = nick;
+        document.getElementById('loginPassword').focus();
+      });
+
+      // GitHub Modal
+      const githubModal = document.getElementById('githubModal');
+      document.getElementById('openGithubModalBtn').addEventListener('click', () => {
+        document.getElementById('ghTokenInput').value = ghConfig.token;
+        document.getElementById('ghGistIdInput').value = ghConfig.gistId;
+        document.getElementById('ghAutoSyncCheck').checked = ghConfig.autoSync;
+        githubModal.classList.remove('hidden');
+        githubModal.classList.add('flex');
+      });
+      document.getElementById('closeGithubModalBtn').addEventListener('click', () => {
+        githubModal.classList.add('hidden');
+        githubModal.classList.remove('flex');
+      });
+      document.getElementById('createGistBtn').addEventListener('click', createGithubGist);
+      document.getElementById('saveGithubConfigBtn').addEventListener('click', async () => {
+        ghConfig.token = document.getElementById('ghTokenInput').value.trim();
+        ghConfig.gistId = document.getElementById('ghGistIdInput').value.trim();
+        ghConfig.autoSync = document.getElementById('ghAutoSyncCheck').checked;
+        saveGhConfig();
+        if (ghConfig.gistId) {
+          await pushStateToGithub();
+          showToast('🐙 Настройки GitHub сохранены и синхронизированы!', 'success');
+        } else {
+          showToast('Локальные настройки сохранены.', 'info');
+        }
+      });
+      document.getElementById('pullGithubBtn').addEventListener('click', () => {
+        ghConfig.token = document.getElementById('ghTokenInput').value.trim();
+        ghConfig.gistId = document.getElementById('ghGistIdInput').value.trim();
+        saveGhConfig();
+        pullStateFromGithub(false);
+      });
+
+      document.getElementById('copyServerLinkBtn').addEventListener('click', () => {
+        const gist = document.getElementById('ghGistIdInput').value.trim() || ghConfig.gistId;
+        const token = document.getElementById('ghTokenInput').value.trim() || ghConfig.token;
+        if (!gist) {
+          showToast('Сначала создайте или укажите Gist ID базы данных GitHub выше.', 'warning');
+          return;
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.set('gist', gist);
+        if (token) {
+          url.searchParams.set('k', btoa(token));
+        }
+        const tempInput = document.createElement('input');
+        tempInput.value = url.toString();
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        tempInput.remove();
+        showToast('🔗 Ссылка на сервер скопирована! Отправьте её игрокам — они войдут как Игроки и будут видны вам в онлайне.', 'success');
+      });
+
+      // Publish Lot Modal
+      const publishModal = document.getElementById('publishModal');
+      const lotKindSelect = document.getElementById('lotKindSelect');
+      const itemLotFields = document.getElementById('itemLotFields');
+      const gpayLotFields = document.getElementById('gpayLotFields');
+
+      document.getElementById('openPublishModalBtn').addEventListener('click', () => {
+        publishModal.classList.remove('hidden');
+        publishModal.classList.add('flex');
+      });
+      document.getElementById('closePublishModalBtn').addEventListener('click', () => {
+        publishModal.classList.add('hidden');
+        publishModal.classList.remove('flex');
+      });
+
+      lotKindSelect.addEventListener('change', () => {
+        if (lotKindSelect.value === 'gpay') {
+          itemLotFields.classList.add('hidden');
+          gpayLotFields.classList.remove('hidden');
+          gpayLotFields.classList.add('grid');
+          document.getElementById('lotTagInput').value = 'Google Pay';
+          document.getElementById('lotIconInput').value = '🪙';
+        } else {
+          itemLotFields.classList.remove('hidden');
+          gpayLotFields.classList.add('hidden');
+          gpayLotFields.classList.remove('grid');
+          document.getElementById('lotTagInput').value = 'Легендарный';
+          document.getElementById('lotIconInput').value = '⚔️';
+        }
+      });
+
+      document.getElementById('publishLotForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const kind = lotKindSelect.value;
+        const title = document.getElementById('lotTitleInput').value.trim();
+        const description = document.getElementById('lotDescInput').value.trim();
+        const icon = document.getElementById('lotIconInput').value;
+        const tag = document.getElementById('lotTagInput').value;
+
+        if (!title) return;
+
+        const newLot = {
+          id: 'lot-' + Date.now(),
+          kind,
+          featured: false,
+          title,
+          description,
+          usdPrice: kind === 'gpay' ? Number(document.getElementById('lotUsdPriceInput').value || 10) : 0,
+          tokensReward: kind === 'gpay' ? Number(document.getElementById('lotTokensRewardInput').value || 1000) : 0,
+          tokenCost: kind === 'item' ? Number(document.getElementById('lotTokenCostInput').value || 500) : 0,
+          icon,
+          tag
+        };
+
+        state.lots.unshift(newLot);
+        document.getElementById('lotTitleInput').value = '';
+        document.getElementById('lotDescInput').value = '';
+        publishModal.classList.add('hidden');
+        publishModal.classList.remove('flex');
+
+        renderAll();
+        pushStateToGithub();
+        showToast(`✨ Лот «${title}» успешно размещён в каталоге!`, 'success');
+      });
+
+      // Filter Tabs & Search
+      document.querySelectorAll('.filter-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.filter = btn.dataset.filter;
+          document.querySelectorAll('.filter-tab').forEach(b => {
+            b.className = 'filter-tab rounded-xl border border-slate-800 bg-obsidian/80 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:text-white';
+          });
+          btn.className = 'filter-tab rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-neon transition';
+          renderLots();
+        });
+      });
+
+      document.getElementById('searchLotsInput').addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        renderLots();
+      });
+
+      // Google Pay Modal & Lot Actions
+      const gpayModal = document.getElementById('gpayModal');
+
+      function openGpayCheckout(lotId) {
+        const lot = state.lots.find(l => l.id === lotId);
+        if (!lot) return;
+        state.selectedGpayLotId = lot.id;
+        document.getElementById('gpayLotTitle').textContent = lot.title;
+        document.getElementById('gpayUsdAmount').textContent = `$${Number(lot.usdPrice).toFixed(2)}`;
+        document.getElementById('gpayTokensReward').textContent = `+${Number(lot.tokensReward).toLocaleString('ru-RU')} 🪙`;
+        gpayModal.classList.remove('hidden');
+        gpayModal.classList.add('flex');
+      }
+
+      document.getElementById('heroBuy1000Btn').addEventListener('click', () => openGpayCheckout('lot-gpay-1000'));
+      document.getElementById('featuredGpayCardBtn').addEventListener('click', () => openGpayCheckout('lot-gpay-1000'));
+
+      document.getElementById('lotsGrid').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-lot-action]');
+        if (!btn) return;
+        const action = btn.dataset.lotAction;
+        const lotId = btn.dataset.lotId;
+        const lot = state.lots.find(l => l.id === lotId);
+        if (!lot) return;
+
+        if (action === 'ask-admin') {
+          openChatWithDraft(`Привет, Админ! Интересует лот «${lot.title}» (${lot.kind === 'gpay' ? '$' + lot.usdPrice + ' за ' + lot.tokensReward + ' 🪙' : lot.tokenCost + ' 🪙'}).`);
+          return;
+        }
+
+        if (lot.kind === 'gpay') {
+          openGpayCheckout(lot.id);
+        } else {
+          const currentUser = getCurrentUser();
+          if (!currentUser) {
+            showToast('Сначала войдите или зарегистрируйтесь, чтобы покупать предметы за токены.', 'warning');
+            openRegModal('register');
+            return;
+          }
+          if (currentUser.tokens < lot.tokenCost) {
+            showToast(`Недостаточно токенов (нужно ${lot.tokenCost} 🪙). Купите через Google Pay или напишите админу.`, 'warning');
+            return;
+          }
+          currentUser.tokens -= lot.tokenCost;
+          currentUser.tokensUpdatedAt = Date.now();
+          renderAll();
+          pushStateToGithub();
+          showToast(`🎉 Вы купили «${lot.title}» за ${lot.tokenCost} 🪙!`, 'success');
+        }
+      });
+
+      document.getElementById('closeGpayModalBtn').addEventListener('click', () => {
+        gpayModal.classList.add('hidden');
+        gpayModal.classList.remove('flex');
+      });
+
+      document.getElementById('confirmGpayBtn').addEventListener('click', () => {
+        const lot = state.lots.find(l => l.id === state.selectedGpayLotId);
+        if (!lot) return;
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          gpayModal.classList.add('hidden');
+          gpayModal.classList.remove('flex');
+          showToast('Зарегистрируйтесь или войдите по паролю, чтобы получить токены на аккаунт.', 'warning');
+          openRegModal('register');
+          return;
+        }
+        currentUser.tokens += Number(lot.tokensReward);
+        currentUser.tokensUpdatedAt = Date.now();
+        gpayModal.classList.add('hidden');
+        gpayModal.classList.remove('flex');
+        renderAll();
+        pushStateToGithub();
+        showToast(`✅ Оплата Google Pay ($${lot.usdPrice}) прошла! Зачислено +${lot.tokensReward} 🪙`, 'success');
+      });
+
+      document.getElementById('gpayWriteAdminBtn').addEventListener('click', () => {
+        const lot = state.lots.find(l => l.id === state.selectedGpayLotId);
+        gpayModal.classList.add('hidden');
+        gpayModal.classList.remove('flex');
+        openChatWithDraft(
+          lot
+            ? `Привет, Админ! Хочу оплатить пакет «${lot.title}» ($${lot.usdPrice} за ${lot.tokensReward} 🪙) через Google Pay.`
+            : 'Привет, Админ! Хочу купить 1000 токенов за $10.'
+        );
+      });
+
+      // Chat Drawer & Messaging
+      const chatDrawer = document.getElementById('chatDrawer');
+      const chatInput = document.getElementById('chatInput');
+
+      function openChatWithDraft(draftText = '') {
+        chatDrawer.classList.remove('hidden');
+        chatDrawer.classList.add('flex');
+        state.unreadCount = 0;
+        renderHeaderAndStats();
+        renderChatMessages();
+        if (draftText) {
+          chatInput.value = draftText;
+          chatInput.focus();
+        }
+      }
+
+      document.getElementById('chatToggleBtn').addEventListener('click', () => {
+        if (chatDrawer.classList.contains('hidden')) {
+          openChatWithDraft();
+        } else {
+          chatDrawer.classList.add('hidden');
+          chatDrawer.classList.remove('flex');
+        }
+      });
+
+      document.getElementById('closeChatBtn').addEventListener('click', () => {
+        chatDrawer.classList.add('hidden');
+        chatDrawer.classList.remove('flex');
+      });
+
+      document.getElementById('heroWriteAdminBtn').addEventListener('click', () => {
+        openChatWithDraft('Привет, Админ! Хочу приобрести 1000 токенов за $10.');
+      });
+
+      document.querySelectorAll('.quick-chat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          chatInput.value = btn.dataset.quickMsg;
+          chatInput.focus();
+        });
+      });
+
+      document.getElementById('chatForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          showToast('Войдите или зарегистрируйтесь, чтобы писать сообщения в чат.', 'warning');
+          openRegModal('register');
+          return;
+        }
+
+        const isSoleAdmin = (currentUser.id === state.adminUserId);
+        state.messages.push({
+          id: 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 999),
+          senderId: currentUser.id,
+          senderName: `${currentUser.avatar} ${currentUser.nickname}`,
+          senderRole: isSoleAdmin ? 'admin' : 'player',
+          text,
+          time: nowTime()
+        });
+
+        chatInput.value = '';
+        renderAll();
+        pushStateToGithub();
+      });
+
+      document.getElementById('chatMessagesList').addEventListener('click', (e) => {
+        const grantBtn = e.target.closest('.chat-grant-btn');
+        if (!grantBtn) return;
+        enforceSingleFirstAdmin();
+        const currentUser = getCurrentUser();
+        if (!currentUser || currentUser.id !== state.adminUserId) return;
+
+        const targetUser = state.users.find(u => u.id === grantBtn.dataset.chatGrantUser);
+        if (!targetUser) return;
+        targetUser.tokens += 1000;
+        targetUser.tokensUpdatedAt = Date.now();
+        state.messages.push({
+          id: 'msg-grant-' + Date.now(),
+          senderId: currentUser.id,
+          senderName: `👑 ${currentUser.nickname}`,
+          senderRole: 'admin',
+          text: `Начислено +1,000 🪙 игроку ${targetUser.nickname} по запросу в чате!`,
+          time: nowTime()
+        });
+        renderAll();
+        pushStateToGithub();
+        showToast(`🪙 Выдано +1000 токенов игроку ${targetUser.nickname}`, 'success');
+      });
+
+      // Admin Token Issuance Form & Quick Grant (Strictly checked against state.adminUserId)
+      document.getElementById('issueTokensForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        enforceSingleFirstAdmin();
+        const currentUser = getCurrentUser();
+        if (!currentUser || currentUser.id !== state.adminUserId) {
+          showToast('Только первый зарегистрированный администратор может выдавать токены.', 'warning');
+          return;
+        }
+        const targetId = document.getElementById('targetUserSelect').value;
+        const amount = Number(document.getElementById('issueTokensAmount').value);
+        const targetUser = state.users.find(u => u.id === targetId);
+        if (!targetUser || !amount || amount <= 0) return;
+
+        targetUser.tokens += amount;
+        targetUser.tokensUpdatedAt = Date.now();
+        state.messages.push({
+          id: 'msg-grant-' + Date.now(),
+          senderId: currentUser.id,
+          senderName: `👑 ${currentUser.nickname}`,
+          senderRole: 'admin',
+          text: `Выдано +${amount.toLocaleString('ru-RU')} 🪙 игроку ${targetUser.nickname}.`,
+          time: nowTime()
+        });
+
+        renderAll();
+        pushStateToGithub();
+        showToast(`🪙 Выдано +${amount} токенов пользователю ${targetUser.nickname}!`, 'success');
+      });
+
+      document.querySelectorAll('.preset-token-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('issueTokensAmount').value = btn.dataset.presetTokens;
+        });
+      });
+
+      document.getElementById('adminUsersList').addEventListener('click', (e) => {
+        const grantBtn = e.target.closest('.quick-grant-btn');
+        if (!grantBtn) return;
+        enforceSingleFirstAdmin();
+        const currentUser = getCurrentUser();
+        if (!currentUser || currentUser.id !== state.adminUserId) return;
+
+        const userId = grantBtn.dataset.grantUser;
+        const amount = Number(grantBtn.dataset.grantAmount || 1000);
+        const targetUser = state.users.find(u => u.id === userId);
+        if (!targetUser) return;
+        targetUser.tokens += amount;
+        targetUser.tokensUpdatedAt = Date.now();
+        renderAll();
+        pushStateToGithub();
+        showToast(`🪙 Быстрая выдача: +${amount} токенов для ${targetUser.nickname}`, 'success');
+      });
+
+      // Online Users Modal
+      const onlineModal = document.getElementById('onlineModal');
+      document.getElementById('onlineBadgeBtn').addEventListener('click', () => {
+        renderOnlineUsersModal();
+        onlineModal.classList.remove('hidden');
+        onlineModal.classList.add('flex');
+      });
+      document.getElementById('closeOnlineModalBtn').addEventListener('click', () => {
+        onlineModal.classList.add('hidden');
+        onlineModal.classList.remove('flex');
+      });
+
+      function renderAll() {
+        renderHeaderAndStats();
+        renderLots();
+        renderChatMessages();
+      }
+
+      // Listen for cross-tab real-time updates (BroadcastChannel + storage event)
+      if (liveChannel) {
+        liveChannel.onmessage = (event) => {
+          if (event && event.data) {
+            mergeDatabaseState(event.data);
+            renderAll();
+          }
+        };
+      }
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_KEY && e.newValue) {
+          try {
+            mergeDatabaseState(JSON.parse(e.newValue));
+            renderAll();
+          } catch (err) {}
+        }
+      });
+
+      // Mark user offline when closing tab/window
+      window.addEventListener('beforeunload', () => {
+        const cur = getCurrentUser();
+        if (cur) {
+          cur.online = false;
+          cur.lastSeen = 0;
+          saveLocalState(true);
+        }
+      });
+
+      // Initialize: check invite link, load saved state & start live online heartbeat
+      checkUrlServerInvite();
+      loadLocalState();
+      renderAll();
+
+      if (ghConfig.gistId) {
+        pullStateFromGithub(true);
+      }
+
+      // Live Heartbeat every 6 seconds: updates current user's online pulse and syncs with server
+      setInterval(() => {
+        const cur = getCurrentUser();
+        if (cur) {
+          cur.online = true;
+          cur.lastSeen = Date.now();
+          saveLocalState(true);
+        }
+        if (ghConfig.autoSync && ghConfig.gistId) {
+          if (cur) {
+            pushStateToGithub();
+          } else {
+            pullStateFromGithub(true);
+          }
+        }
+        renderHeaderAndStats();
+      }, 6000);
+    })();
+  </script>
+<sb_publishable_0Z-Pykcxq7QlDtVBxmHLkw_2-3qIDox/body>
+</html>
